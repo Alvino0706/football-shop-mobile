@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:football_shop/widgets/left_drawer.dart';
+import 'package:football_shop/screens/product_page.dart';
+
 
 class ItemHomepage {
   final String name;
@@ -40,6 +43,7 @@ class MyHomePage extends StatelessWidget {
             .colorScheme
             .primary,
       ),
+      drawer: const LeftDrawer(),
       // Body halaman dengan padding di sekelilingnya.
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -155,14 +159,22 @@ class ItemCard extends StatelessWidget {
 
       child: InkWell(
         // Aksi ketika kartu ditekan.
-        onTap: () {
-          // Menampilkan pesan SnackBar saat kartu ditekan.
+      onTap: () {
+        if (item.name == "All Products" ||
+            item.name == "My Products" ||
+            item.name == "Create Products") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProductFormPage()),
+          );
+        } else {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(
-                SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"))
+              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!")),
             );
-        },
+        }
+      },
         // Container untuk menyimpan Icon dan Text
         child: Container(
           padding: const EdgeInsets.all(8),

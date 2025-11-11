@@ -53,3 +53,31 @@ Keduanya adalah fitur dalam flutter untuk melihat perubahan kode dengan cepat. "
 
 ## 7. Jelaskan bagaimana kamu menambahkan navigasi untuk berpindah antar layar di aplikasi Flutter.
 Untuk berpindah antar layar, Flutter menggunakan konsep Stack-based Navigation yang dikelola oleh Navigator. Layar baru "didukung" ke atas tumpukan layar yang sudah ada.
+
+# Tugas 8
+
+---
+
+## 1. Jelaskan perbedaan antara Navigator.push() dan Navigator.pushReplacement() pada Flutter. Dalam kasus apa sebaiknya masing-masing digunakan pada aplikasi Football Shop kamu?
+- Navigator.push(): Menambahkan halaman baru di atas halaman sebelumnya di dalam navigation stack dan cocok digunakan saat saya ingin menavigasi sementara, dan masih ingin kembali ke halaman asal. Di aplikasi saya sebaiknya digunakan untuk dari Home ke Create Product Form, agar pengguna bisa kembali dengan tombol back.
+- Navigator.pushReplacement(): Mengganti halaman saat ini dengan halaman baru tanpa menyimpannya di stack dan cocok digunakan saat saya ingin mengganti halaman utama secara permanen, seperti berpindah antar menu utama. Di aplikasi saya sebaiknya digunakan untuk berpindah dari Drawer: Home ke All Products atau Create Product.
+
+## 2. Bagaimana kamu memanfaatkan hierarchy widget seperti Scaffold, AppBar, dan Drawer untuk membangun struktur halaman yang konsisten di seluruh aplikasi?
+- Scaffold: Setiap halaman (menu.dart, product_form.dart) menggunakan Scaffold agar layout konsisten.
+- AppBar: Semua halaman memakai warna biru tua (Colors.indigo) agar seragam.
+- Drawer: Dibuat di widgets/left_drawer.dart dan dipanggil di setiap halaman lewat drawer: LeftDrawer().
+
+
+## 3. Dalam konteks desain antarmuka, apa kelebihan menggunakan layout widget seperti Padding, SingleChildScrollView, dan ListView saat menampilkan elemen-elemen form? Berikan contoh penggunaannya dari aplikasi kamu.
+- Padding: Memberi jarak antar elemen agar tampilan tidak menempel dan membuat form lebih rapi dan mudah dibaca. Contoh: Setiap TextFormField dibungkus dengan Padding(const EdgeInsets.all(8.0)).
+- SingleChildScrollView: Membuat seluruh isi halaman bisa discroll dan menghindari overflow ketika keyboard muncul atau layar kecil. Contoh: Di ProductFormPage, seluruh Column yang berisi field form dibungkus SingleChildScrollView sehingga user bisa scroll semua input tanpa error meskipun form banyak.
+- ListView: Menampilkan daftar data dengan kemampuan scroll otomatis dan cocok untuk menampilkan list produk atau item dengan panjang tidak tetap. Contoh: Di LeftDrawer, ListView membungkus DrawerHeader dan beberapa ListTile (Halaman Utama, Tambah Produk), sehingga jika menu drawer ditambah banyak pun tetap bisa discroll dengan rapi.
+
+## 4. Bagaimana kamu menyesuaikan warna tema agar aplikasi Football Shop memiliki identitas visual yang konsisten dengan brand toko?
+
+    theme: ThemeData(
+        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+        .copyWith(secondary: Colors.blueAccent[400]),
+    ),
+
+    
