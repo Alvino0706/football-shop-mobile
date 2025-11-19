@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 // TODO: Impor drawer yang sudah dibuat sebelumnya
 import 'package:football_shop/widgets/left_drawer.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:football_shop/screens/menu.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key});
@@ -12,8 +16,9 @@ class ProductFormPage extends StatefulWidget {
 class _ProductFormPageState extends State<ProductFormPage> {
   final _formKey = GlobalKey<FormState>();
   String _name = "";
-  String _description = "";
   int _price = 0;
+  String _description = "";
+  int _stock = 0;
   String _category = "update"; // default
   String _condition = "baru"; // default
   String _thumbnail = "";
@@ -29,18 +34,18 @@ class _ProductFormPageState extends State<ProductFormPage> {
     'bola',
   ];
 
-  final List<String> _conditions = [
-    'baru',
-    'bekas',
-  ];
+  final List<String> _conditions = ['baru', 'bekas'];
 
   bool _isValidUrl(String url) {
-    final pattern = RegExp(r'^(https?:\/\/)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}\/?.*$');
+    final pattern = RegExp(
+      r'^(https?:\/\/)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}\/?.*$',
+    );
     return pattern.hasMatch(url);
   }
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
         title: const Center(child: Text('Form Tambah Produk')),
@@ -73,9 +78,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Nama Produk tidak boleh kosong!";
-                    } else if (value.length < 3) {              
-                      return "Nama Produk minimal 3 karakter!"; 
-                    } else if (value.length > 30) {             
+                    } else if (value.length < 3) {
+                      return "Nama Produk minimal 3 karakter!";
+                    } else if (value.length > 30) {
                       return "Nama Produk maksimal 30 karakter!";
                     }
                     return null;
@@ -103,10 +108,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   validator: (String? value) {
                     if (value == null || value.isEmpty) {
                       return "Deskripsi produk tidak boleh kosong!";
-                    } else if (value.length < 10) {                   
-                      return "Deskripsi minimal 10 karakter!";      
-                    } else if (value.length > 500) {               
-                      return "Deskripsi terlalu panjang (maks. 500 karakter)!"; 
+                    } else if (value.length < 10) {
+                      return "Deskripsi minimal 10 karakter!";
+                    } else if (value.length > 500) {
+                      return "Deskripsi terlalu panjang (maks. 500 karakter)!";
                     }
                     return null;
                   },
@@ -134,11 +139,43 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     if (value == null || value.isEmpty) {
                       return "Harga Produk tidak boleh kosong!";
                     }
-                    final parsed = int.tryParse(value);         
-                    if (parsed == null) {                      
-                      return "Harga harus berupa angka!";    
-                    } else if (parsed <= 0) {                 
-                      return "Harga harus lebih dari 0!";     
+                    final parsed = int.tryParse(value);
+                    if (parsed == null) {
+                      return "Harga harus berupa angka!";
+                    } else if (parsed <= 0) {
+                      return "Harga harus lebih dari 0!";
+                    }
+                    return null;
+                  },
+                ),
+              ),
+
+              // Price
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: "Stok Produk",
+                    labelText: "Stok Produk",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _stock = int.tryParse(value) ?? 0;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Stok Produk tidak boleh kosong!";
+                    }
+                    final parsed = int.tryParse(value);
+                    if (parsed == null) {
+                      return "Stok harus berupa angka!";
+                    } else if (parsed <= 0) {
+                      return "Stok harus lebih dari 0!";
                     }
                     return null;
                   },
@@ -216,7 +253,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     });
                   },
                   validator: (value) {
-                    if (value != null && value.isNotEmpty && !_isValidUrl(value)) {
+                    if (value != null &&
+                        value.isNotEmpty &&
+                        !_isValidUrl(value)) {
                       return "Masukkan URL yang valid (contoh: https://...)";
                     }
                     return null;
@@ -246,39 +285,48 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(Colors.indigo),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Berita berhasil disimpan!'),
-                              content: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Nama Produk: $_name'),
-                                    Text('Deskripsi: $_description'),
-                                    Text('Harga: Rp$_price'),
-                                    Text('Kategori: $_category'),
-                                    Text('Kondisi: $_condition'),
-                                    Text('Thumbnail: $_thumbnail'),
-                                    Text('Unggulan: ${_isFeatured ? "Ya" : "Tidak"}'),
-                                  ],
+                        // TODO: Replace the URL with your app's URL
+                        // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
+                        // If you using chrome,  use URL http://localhost:8000
+
+                        final response = await request.postJson(
+                          "http://localhost:8000/create-flutter/",
+                          jsonEncode({
+                            "name": _name,
+                            "price": _price,
+                            "description": _description,
+                            "stock": _stock,
+                            "condition": _condition,
+                            "thumbnail": _thumbnail,
+                            "category": _category,
+                            "is_featured": _isFeatured,
+                          }),
+                        );
+                        if (context.mounted) {
+                          if (response['status'] == 'success') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Product successfully saved!"),
+                              ),
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyHomePage(),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Something went wrong, please try again.",
                                 ),
                               ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ),
-                              ],
                             );
-                          },
-                        );
-                        _formKey.currentState!.reset();
+                          }
+                        }
                       }
                     },
                     child: const Text(
